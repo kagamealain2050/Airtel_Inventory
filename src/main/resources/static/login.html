@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login & Register - Inventory System</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #8B0000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 350px;
+            box-shadow: 0px 5px 15px rgba(0,0,0,0.3);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #8B0000;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            background: #f4f4f4;
+            border: none;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .tab.active {
+            background: #8B0000;
+            color: white;
+        }
+
+        .tab:first-child {
+            border-radius: 5px 0 0 5px;
+        }
+
+        .tab:last-child {
+            border-radius: 0 5px 5px 0;
+        }
+
+        .form {
+            display: none;
+        }
+
+        .form.active {
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #8B0000;
+            color: rgb(0, 0, 0);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: black;
+            color:#f4f4f4;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .success {
+            color: green;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .info {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>AIRTEL IMS</h2>
+
+   
+
+    <!-- LOGIN FORM -->
+    <div id="loginForm" class="form active">
+        <label>Registration Number:</label>
+        <input type="text" id="loginRegno" placeholder="Enter registration number" value="24rp02639">
+
+        <label>Password:</label>
+        <input type="password" id="loginPassword" placeholder="Enter password" value="24rp09144">
+
+        <button onclick="login()">Login</button>
+        <div id="loginError" class="error"></div>
+    </div>
+    
+     <!-- TABS -->
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('login')">Back</button>
+        <button class="tab" onclick="switchTab('register')">Register Account</button>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="registerForm" class="form">
+        <label>Full Name:</label>
+        <input type="text" id="regFullName" placeholder="Enter your full name">
+
+        <label>Registration Number:</label>
+        <input type="text" id="regRegno" placeholder="Enter registration number">
+
+        <label>Email:</label>
+        <input type="email" id="regEmail" placeholder="Enter email address">
+
+        <label>Phone:</label>
+        <input type="text" id="regPhone" placeholder="Enter phone number">
+
+        <label>Password:</label>
+        <input type="password" id="regPassword" placeholder="Create password">
+
+        <label>Confirm Password:</label>
+        <input type="password" id="regConfirmPassword" placeholder="Confirm password">
+
+        <button onclick="register()">Register</button>
+        <div id="registerError" class="error"></div>
+        <div id="registerSuccess" class="success"></div>
+    </div>
+
+    <div class="info">
+        Demo credentials: regno: 24rp02639, password: 24rp09144
+    </div>
+</div>
+
+<script>
+
+// AUTO-REDIRECT IF ALREADY LOGGED IN
+if (localStorage.getItem("user")) {
+    window.location.href = "index.html";
+}
+
+// ==================== TAB SWITCHING ====================
+function switchTab(tab) {
+    // Update tab buttons
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if (tab === 'login') {
+        document.querySelector('.tab:first-child').classList.add('active');
+        document.getElementById('loginForm').classList.add('active');
+        document.getElementById('registerForm').classList.remove('active');
+    } else {
+        document.querySelector('.tab:last-child').classList.add('active');
+        document.getElementById('registerForm').classList.add('active');
+        document.getElementById('loginForm').classList.remove('active');
+    }
+    
+    // Clear errors
+    document.getElementById('loginError').innerText = '';
+    document.getElementById('registerError').innerText = '';
+    document.getElementById('registerSuccess').innerText = '';
+}
+
+// ==================== LOGIN (Using regnumber) ====================
+function login() {
+    const regno = document.getElementById("loginRegno").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+
+    if (!regno || !password) {
+        document.getElementById("loginError").innerText = "Please enter registration number and password";
+        return;
+    }
+
+    document.getElementById("loginError").innerText = "Logging in...";
+
+    fetch("http://localhost:8083/api/auth/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            regno: regno,
+            password: password
+        })
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.text().then(text => { throw new Error(text || "Invalid credentials"); });
+        }
+        return res.json();
+    })
+    .then(data => {
+        localStorage.setItem("user", JSON.stringify(data));
+        window.location.href = "index.html";
+    })
+    .catch(err => {
+        document.getElementById("loginError").innerText = err.message;
+    });
+}
+
+// ==================== REGISTER (Using regnumber) ====================
+function register() {
+    const fullName = document.getElementById("regFullName").value.trim();
+    const regno = document.getElementById("regRegno").value.trim();
+    const email = document.getElementById("regEmail").value.trim();
+    const phone = document.getElementById("regPhone").value.trim();
+    const password = document.getElementById("regPassword").value.trim();
+    const confirmPassword = document.getElementById("regConfirmPassword").value.trim();
+
+    // Validation
+    if (!fullName || !regno || !email || !phone || !password) {
+        document.getElementById("registerError").innerText = "Please fill all fields";
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        document.getElementById("registerError").innerText = "Passwords do not match";
+        return;
+    }
+
+    if (password.length < 4) {
+        document.getElementById("registerError").innerText = "Password must be at least 4 characters";
+        return;
+    }
+
+    if (!email.includes('@')) {
+        document.getElementById("registerError").innerText = "Please enter a valid email address";
+        return;
+    }
+
+    document.getElementById("registerError").innerText = "";
+    document.getElementById("registerSuccess").innerText = "Creating account...";
+
+    // Send registration request
+    fetch("http://localhost:8083/api/auth/register", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            fullName: fullName,
+            regno: regno,
+            email: email,
+            phone: phone,
+            password: password
+        })
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.text().then(text => { throw new Error(text || "Registration failed"); });
+        }
+        return res.json();
+    })
+    .then(data => {
+        document.getElementById("registerSuccess").innerText = "✅ Registration successful! Please login.";
+        document.getElementById("registerError").innerText = "";
+        
+        // Clear registration form
+        document.getElementById("regFullName").value = "";
+        document.getElementById("regRegno").value = "";
+        document.getElementById("regEmail").value = "";
+        document.getElementById("regPhone").value = "";
+        document.getElementById("regPassword").value = "";
+        document.getElementById("regConfirmPassword").value = "";
+        
+        // Switch to login tab after 2 seconds
+        setTimeout(() => {
+            switchTab('login');
+            document.getElementById("loginRegno").value = regno;
+        }, 2000);
+    })
+    .catch(err => {
+        document.getElementById("registerError").innerText = err.message;
+        document.getElementById("registerSuccess").innerText = "";
+    });
+}
+
+</script>
+
+</body>
+</html>
