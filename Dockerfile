@@ -1,14 +1,18 @@
-# Use Java 17 (matches your pom.xml)
+# Stage 1: Build the app
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+
+WORKDIR /app
+COPY . .
+
+RUN mvn clean package -DskipTests
+
+# Stage 2: Run the app
 FROM eclipse-temurin:17-jdk
 
-# Set working directory
 WORKDIR /app
 
-# Copy built JAR into container
-COPY target/inventory-system-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
-# Expose port (Render will override with $PORT)
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
