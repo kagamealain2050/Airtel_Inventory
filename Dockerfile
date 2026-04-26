@@ -8,7 +8,7 @@ WORKDIR /app
 COPY target/inventory-system-0.0.1-SNAPSHOT.jar app.jar
 
 # Expose port (Render will override with $PORT)
-EXPOSE 8083
+EXPOSE 8080
 
 # Run the application
 ENTRYPOINT ["java","-jar","/app/app.jar"]
